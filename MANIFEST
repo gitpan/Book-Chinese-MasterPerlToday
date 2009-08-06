@@ -34,3 +34,4 @@ lib/Book/Chinese/MasterPerlToday/eg/Template/include.tt2
 lib/Book/Chinese/MasterPerlToday/eg/Template/insert.tt2
 lib/Book/Chinese/MasterPerlToday/eg/Template/lib/MyTemplate/Plugin/Filter/Textile.pm
 lib/Book/Chinese/MasterPerlToday/eg/Template/process.tt2
+t/pod.t
