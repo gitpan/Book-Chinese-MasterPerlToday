@@ -1,6 +1,5 @@
-package TheSchwartz::Schema::Result::Job;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    TheSchwartz::Schema::Result::Job;
 
 use strict;
 use warnings;

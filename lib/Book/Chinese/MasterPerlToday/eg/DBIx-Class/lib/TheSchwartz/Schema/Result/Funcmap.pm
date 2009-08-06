@@ -1,6 +1,5 @@
-package TheSchwartz::Schema::Result::Funcmap;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    TheSchwartz::Schema::Result::Funcmap;
 
 use strict;
 use warnings;

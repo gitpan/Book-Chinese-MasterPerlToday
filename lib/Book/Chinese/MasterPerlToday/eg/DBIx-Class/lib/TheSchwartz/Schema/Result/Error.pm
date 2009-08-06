@@ -1,6 +1,5 @@
-package TheSchwartz::Schema::Result::Error;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    TheSchwartz::Schema::Result::Error;
 
 use strict;
 use warnings;

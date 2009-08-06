@@ -1,6 +1,5 @@
-package TheSchwartz::Schema;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    TheSchwartz::Schema;
 
 use strict;
 use warnings;

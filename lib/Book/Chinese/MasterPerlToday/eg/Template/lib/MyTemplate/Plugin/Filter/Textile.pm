@@ -1,6 +1,5 @@
-package MyTemplate::Plugin::Filter::Textile;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    MyTemplate::Plugin::Filter::Textile;
 
 use strict;
 use warnings;

@@ -1,3 +1,4 @@
+=encoding utf8
 
 =head1 NAME
 
@@ -35,11 +36,31 @@ Book::Chinese::MasterPerlToday::BeACPANTester - Be a CPAN Tester
 
 将重新配置 CPAN 设置
 
+    cpan> o conf urllist
+    urllist
+        0 [http://cpan.strawberryperl.com/]
+        1 [http://www.cpan.org/]
+
+    cpan> o conf urllist unshift http://cpan.perl.org/
+    cpan> o conf urllist
+    urllist
+        0 [http://cpan.perl.org/]
+        1 [http://cpan.strawberryperl.com/]
+        2 [http://www.cpan.org/]
+
+可以快速控制模块远程网址。
+
 =item * 安装模块
 
     cpan> install Moose
 
 将开始安装或者升级模块。
+
+=item * 重载索引
+
+    cpan> reload index
+
+cpan 默认缓存 index, 这样每次 install 模块的时候可以直接从索引文件构造出远程地址。有时候如果你发现你安装的模块不是最新版本时，可以使用 reload index 来强制更新索引。
 
 =item * 搜寻模块
 

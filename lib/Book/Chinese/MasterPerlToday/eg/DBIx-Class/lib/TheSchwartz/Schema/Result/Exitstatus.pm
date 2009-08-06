@@ -1,6 +1,5 @@
-package TheSchwartz::Schema::Result::Exitstatus;
-our $VERSION = '0.01_01';
-
+package     # hidden from PAUSE
+    TheSchwartz::Schema::Result::Exitstatus;
 
 use strict;
 use warnings;
