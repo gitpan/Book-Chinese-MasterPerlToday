@@ -1,0 +1,241 @@
+
+=head1 NAME
+
+Book::Chinese::MasterPerlToday::Moose - Moose, OO
+
+=head1 DESCRIPTION
+
+Perl 的面对对象系统很强大（Moose 是由 Perl 编写），但并不是很好使用。建议使用 L<Moose>。
+
+学习 L<Moose> 最好的方法是阅读 L<Moose::Manual>。
+
+=head2 对象系统
+
+如果没有 Moose，Perl5 的 OO 应该是比较繁琐的。
+
+  package Person;
+
+  use strict;
+  use warnings;
+
+  sub new {
+      my $class = shift;
+      my %p = ref $_[0] ? %{ $_[0] } : @_;
+      
+      return bless \%p, $class;
+  }
+
+基本上你在写一些无用的东西，没有任何一行代码是跟实际应用的代码有关的。C<bless> 是什么？这样的代码让人很迷糊。
+
+Moose 的意义在于它可以让你专注于写什么(what)，而不是怎么写(how)。
+
+  package Person;
+  
+  use Moose;
+
+=head2 概念
+
+=over 4
+
+=item * Attribute 属性
+
+CPAN 上拥有上百个创建 Accessor 的模块。其中包括最流行的 L<Class::Accessor> 和 L<Class::Accessor::Fast>。L<Moose> 不是最快的（L<Class::XSAccessor> 目前来说最快），但却是最强大的。
+
+=item * Role
+
+Role 与 use base 或者 extends 不同。with 'Role' 类似于将 Role 里的整个代码复制到 with 的模块里。
+
+=item * Method modifiers
+
+=item * Type
+
+=item * Constructor & Destructor
+
+=back
+
+=head2 细节例子
+
+=over 4
+
+=item * handles
+
+delegation 委托，委派。你可以将你自己所需要写的一些 subs 委托给其他的模块来处理，这样外部看起来就像这些 subs 就是属于这个包的。
+
+    package A;
+    
+    use Moose;
+    has 'ua' => (
+        is  => 'rw',
+        isa => 'LWP::UserAgent',
+        lazy => 1,
+        default => sub {
+            LWP::UserAgent->new
+        },
+        handles => ['get', 'post', 'head', 'request']
+    );
+
+使用 C<handles> 后，A->new 之后可以直接调用 get, post 等方法。 A->new->get 等同于 A->new->ua->get
+
+handles 接受 ARRAY | HASH | REGEXP | ROLE | DUCKTYPE | CODE, 上面的例子是 ARRAY。
+
+HASH 可以让你使用不同的 sub 名字。比如
+
+    handles => {
+        get_url => 'get'
+    }
+
+这种用法在当你的模块里已经有一个 get 的时候就非常有用。sub get 是你原来的 get, 而 A->new->get_url = A->new->ua->get
+
+其他的诸如 REGEXP, ROLE, CODE, DUCKTYPE 都有点高级，在有需要的时候可以去 moose@perl.org 或者 irc.perl.org #moose 咨询。
+
+=item * init_arg
+
+  package AAAA;
+  use Moose;
+  has 'bigness' => (
+      is       => 'ro',
+      init_arg => 'size',
+  );
+
+初始化的时候就要用 AAAA->new( size => 1 );
+
+如果你不允许一个变量在 new 里被初始化，可以参考如下：
+
+  has '_genetic_code' => (
+      is         => 'ro',
+      lazy_build => 1,
+      init_arg   => undef,
+  );
+
+=item * L<MooseX::Types>
+
+一般建议使用 L<MooseX::Types> 而不是内置的 Moose Type。
+
+Moose Type 是全局类型，当你使用多个外部包的时候就有可能会造成类型冲突（除非所有的外部包都是用各自的 'packageA.name.' 作为前缀）。L<MooseX::Types> 是属于当前包变量的类型，不容易冲突。
+
+Moose Type 是放在引号之内如 'Int'，这种检测是在运行时检测。而 L<MooseX::Types> 是不放在引号里的（如 Int），这种在编译时就会检测。
+
+L<MooseX::Types> 拥有更多的变量。更容易扩展。常见的如 L<MooseX::Types::Path::Class>
+
+=item * Roles 和 Traits
+
+Traits 其实就是 Role。它们的区别在于：
+
+=over 4
+
+=item 1 Traits 可以拥有一个短名字
+
+=item 2 通常在编译时使用的是 Role，在运行时使用的是 Trait
+
+这意味这 Role 是影响了整个 Class，而 Trait 仅仅影响了 Class 的某个实例(instance)
+
+=back
+
+如果你的模块允许用户配置来使用哪些 traits 的话，一般参考 L<MooseX::Traits>
+
+=back
+
+=head2 MooseX
+
+=over 4
+
+=item * L<MooseX::Declare>
+
+L<MooseX::Declare> 可以说是当前 Perl5 最前沿和激动人心的模块。
+
+它通过 L<Devel::Declare> 定义了一些类似 Perl6 的关键字，使得你写代码的时候更加简洁和方便。
+
+=item * L<MooseX::AttributeHelpers>
+
+=item * L<MooseX::StrictConstructor>
+
+=item * L<MooseX::Singleton>
+
+=item * L<MooseX::Types>
+
+=item * L<MooseX::Role::Parameterized>
+
+=item * L<MooseX::Object::Pluggable>
+
+L<Devel::REPL> 是 L<MooseX::Object::Pluggable> 的一个绝好例子。开发过程的介绍（需要爬墙工具）：
+
+L<http://chainsawblues.vox.com/library/post/a-perl-read-excute-print-loop-repl.html>
+
+L<http://chainsawblues.vox.com/library/post/writing-a-perl-read-eval-print-loop-repl---part-2.html>
+
+L<http://chainsawblues.vox.com/library/post/writing-a-perl-repl-part-3---lexical-environments.html>
+
+L<http://chainsawblues.vox.com/library/post/develrepl-part-4---script-options-rc-files-profiles-and-packaging.html>
+
+=back
+
+=head2 Moose 所开发的软件
+
+但你在写一个小脚本的时候，你可能不会觉得 Moose 怎么有用。但当你写一个很大的系统的时候，你会由衷地为自己选择 Moose 而感到幸运。
+
+=over 4
+
+=item * L<Catalyst>, L<Reaction>
+
+Catalyst 应当是使用 Moose 最广的例子。而 L<Reaction> 应该是最复杂的例子。
+
+=item * L<Dist::Zilla>
+
+L<Dist::Zilla> 拥有一个与 L<MooseX::Object::Pluggable> 不同的写 Plugins 的技巧。
+
+  $_->before_build for $self->plugins_with(-BeforeBuild)->flatten;
+  
+  $_->gather_files    for $self->plugins_with(-FileGatherer)->flatten;
+  $_->prune_files     for $self->plugins_with(-FilePruner)->flatten;
+  $_->munge_files     for $self->plugins_with(-FileMunger)->flatten;
+  $_->setup_installer for $self->plugins_with(-InstallTool)->flatten;
+  
+  $_->after_build({ build_root => $build_root })
+    for $self->plugins_with(-AfterBuild)->flatten;
+
+代码使用不同的 Role 来依次执行 Plugins，简洁而有效。
+
+=item * L<KiokuDB>
+
+=item * L<TryCatch>
+
+=item * More
+
+L<http://cpants.perl.org/dist/used_by/Moose>
+
+不要因为担心 L<Moose> 的启动速度而放弃它，这点速度是绝对物有所值的。
+
+=back
+
+=head1 SEE ALSO
+
+L<Moose>, L<Moose::Manual>
+
+=head1 AUTHOR
+
+Fayland Lam, C<< <fayland at gmail.com> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2009 Fayland Lam
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
