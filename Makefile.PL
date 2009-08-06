@@ -9,7 +9,7 @@ WriteMakefile(
   NAME      => 'Book::Chinese::MasterPerlToday',
   AUTHOR    => 'Fayland\ Lam\ \<fayland\@gmail\.com\>',
   ABSTRACT  => 'free\ book\ in\ Chinese\ \<Master\ Perl\ Today\>',
-  VERSION   => '0.01_03',
+  VERSION   => '0.01_04',
   EXE_FILES => [ qw() ],
   (eval { ExtUtils::MakeMaker->VERSION(6.31) } ? (LICENSE => 'mit') : ()),
   PREREQ_PM    => {
