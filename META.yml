@@ -10,5 +10,5 @@ meta-spec:
 name: Book-Chinese-MasterPerlToday
 requires: {}
 resources:
-  repository: ~
-version: 0.01_04
+  repository: http://github.com/fayland/chinese-perl-book
+version: 0.01_05

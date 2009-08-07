@@ -60,7 +60,7 @@ eg/DBIx-Class/make_schema_at.pl
 
 DBIx::Class::Schema::Loader v0.04006 创建 schema 的时候是用了 load_classes
 
-而从 DBIx::Class 0.081 开始，一个更推荐的做法是 L<load_namespaces|http://search.cpan.org/dist/DBIx-Class/lib/DBIx/Class/Schema.pm#load_namespaces>。
+而从 DBIx::Class 0.081 开始，一个更推荐的做法是 L<load_namespaces|DBIx::Class::Schema/load_namespaces>。
 
 不排除以后 Loader 会改为 load_namespaces。所以以下修改可能很快就过时。
 
@@ -293,6 +293,18 @@ DBIx::Class 的正确使用方法就是用 ResultSet（最起码个人认为是�
      LIMIT 1)',
     [ 'last_visit', 1242290843 ]
   ... ]
+
+=back
+
+=head2 资源
+
+=over 4
+
+=item * 邮件列表：L<http://lists.scsys.co.uk/mailman/listinfo/dbix-class/>
+
+=item * SVN: L<http://dev.catalyst.perl.org/repos/bast/DBIx-Class/>
+
+=item * IRC: irc.perl.org#dbix-class
 
 =back
 
