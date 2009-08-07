@@ -1,6 +1,5 @@
-package TestApp::Controller::Root;
-our $VERSION = '0.01_05';
-
+package     # hidden from PAUSE
+    TestApp::Controller::Root;
 
 use strict;
 use warnings;
