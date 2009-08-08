@@ -1,5 +1,5 @@
 package Book::Chinese::MasterPerlToday;
-our $VERSION = '0.01_06';
+our $VERSION = '0.01_07';
 
 
 # ABSTRACT: free book in Chinese <Master Perl Today>
