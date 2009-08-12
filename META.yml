@@ -11,4 +11,4 @@ name: Book-Chinese-MasterPerlToday
 requires: {}
 resources:
   repository: http://github.com/fayland/chinese-perl-book
-version: 0.01_08
+version: 0.01_09
