@@ -38,6 +38,262 @@ Controller 最大的用处是定义一系列的 URI 和通过 params 或 Model �
 
 =back
 
+=head2 扩展 Catalyst
+
+参阅 L<Catalyst::Manual::ExtendingCatalyst>, L<Catalyst::Manual::Internals>, L<Catalyst::Manual::Plugins>
+
+=head3 Plugin
+
+Plugin 在 5.80 以前（乃至现在）是使用最广的一种扩展方式，虽然有些 plugin 其实没必要成为一个 plugin。
+
+Plugin 通过更新 Catalyst 流程中的某些子程序，或者给 $c 添加一些函数。
+
+通常更改 Catalyst 流程的 plugin 是值得的。但是如果仅仅是方便调用，给 $c 添加某个函数，是非常没有必要成为一个 plugin 的。
+
+=over 4
+
+Catalyst 的整个流程包括两个部分。
+
+=item * setup
+
+一个是 setup 部分，在 Catalyst 启动的时候调用一次。
+
+    setup
+      setup_home
+      setup_log
+      setup_plugins
+      setup_dispatcher
+      setup_engine
+      setup_stats
+      setup_components
+      setup_actions
+      setup_finalize
+
+上述 setup_* 函数我们一般不进行改动，如果自定义的 Plugin 需要在启动的时候检查 config 或做一些初始化的话，一般直接改 sub setup
+
+  use MRO::Compat;
+  sub setup {
+    my $c = shift;
+
+    $c->maybe::next::method(@_);
+    $c->setup_my_plugin_stuff;
+  }
+
+上述 setup plugin 例子有 L<Catalyst::Plugin::ConfigLoader>, L<Catalyst::Plugin::I18N> 等
+
+L<Catalyst::Plugin::Server> 使用了 setup_dispatcher
+
+=item * request
+
+另一个是 request 部分，每个 url 的 request 都调用一次。
+
+    handle_request
+      prepare
+        prepare_request
+        prepare_connection
+        prepare_query_parameters
+        prepare_headers
+        prepare_cookies
+        prepare_path
+        prepare_body (unless parse_on_demand)
+          prepare_body_parameters
+          prepare_parameters
+          prepare_uploads
+        prepare_action
+      dispatch
+      finalize
+        finalize_uploads
+        finalize_error (if one happened)
+        finalize_headers
+          finalize_cookies
+        finalize_body
+
+这种 plugin 很多。
+
+L<Catalyst::Plugin::PageCache> 使用 dispatch+finalize
+
+L<Catalyst::Plugin::Unicode> 使用 prepare_parameters+finalize
+
+=back
+
+=head3 Controller/View/Model
+
+这种类型的扩展一般用于被 use base 或 use parent
+
+=over 4
+
+=item * View
+
+View 是最常见的一种扩展，最常用的如 L<Catalyst::View::TT>, L<Catalyst::View::JSON>, TT::Alloy, PHP, Mason, Template::Declare, GraphViz, GD 等。所有的 View 扩展都基于 L<Catalyst::View>, 它们都覆盖 sub process, 并且在函数最后用 $c->res->body 输出内容。
+
+=item * Model
+
+Model 的扩展不多，最常用的当然是 L<Catalyst::Model::DBIC::Schema> 和 L<Catalyst::Model::Adaptor>. 大部分的 Model 都跟 storage 有关。
+
+所有的 Model 扩展语法跟我们平常写的并无任何区别，所不同的仅仅在于公用性。
+
+写 Model 扩展的时候，有时候我们会用到 L<Catalyst::Component::InstancePerContext>, 该模块是对 B<ACCEPT_CONTEXT> 的一个技巧应用。当你的模块需要在每个 request 里都应用一些代码时非常有用。
+
+=item * Controller
+
+Controller 的模块并不多，毕竟共享的 Controller 内容很窄。更多的我们将在下文中讲到。
+
+最有名气的当属 L<Catalyst::Controller::WrapCGI> 该模块能让 cgi 脚本运行在 Catalyst 里，这将有助于你的计划安排，你可以在以后恰当的时间将该 cgi 改为 Catalyst
+
+其他的有 L<Catalyst::Controller::REST>, L<Catalyst::Controller::reCAPTCHA>
+
+=back
+
+=head3 ActionClass
+
+Action 类似于 L<Moose> 的 C<around>, 最常见的 ActionClass 是 L<Catalyst::Action::RenderView>
+
+所有的 Action 都基于 L<Catalyst::Action> 并且需要 sub execute, 原始的 sub 调用通过 L<MRO::Compat>, 大致类似
+
+  sub execute {
+    my $self = shift;
+    my ($controller, $c ) = @_;
+    
+    $self->next::method( @_ );
+
+$self->next::method( @_ ); 可以放到 sub execute 的任何地方。这意味你可以在原始 sub 之前写代码也可以在其之后。
+
+=head3 Controller 属性
+
+如果你阅读过 L<Catalyst::Controller> 的源码的话，你会发现一些 _parse_*_attr 的 sub 类如 _parse_Global_attr, _parse_Path_attr, _parse_Regex_attr, _parse_Chained_attr 等
+
+我们可以通过自定义属性和增加该属性对应的 _parse_*_attr 来扩展 Catalyst Controller.
+
+这种类型的扩展有 L<Catalyst::Controller::ActionRole>, L<Catalyst::Controller::SOAP>
+
+这种类型的扩展一般直接返回一个 ActionClass, 或配合 C<create_action> 来进行操作。
+
+=head3 其它 (TraitFor)
+
+因为基于强大的 Moose 系统，所以我们也可以用一些 Moose 的方法来扩展 Catalyst.
+
+比如基于 L<CatalystX::RoleApplicator> 的 L<Catalyst::TraitFor::Request::ProxyBase>, L<Catalyst::TraitFor::Request::BrowserDetect> (Catalyst::Plugin::Browser)
+
+基于 L<CatalystX::Component::Traits> 的 L<Catalyst::Model::DBIC::Schema>
+
+=head2 Session 和 Authentication
+
+Catalyst 的高度可扩展名声很大程度上来自 Session, Authentication 和 View
+
+=head3 Session
+
+我们所说的 Session 指的是 L<Catalyst::Plugin::Session>
+
+Session 分为两个部分
+
+=over 4
+
+=item * State
+
+State 一般推荐只有 L<Catalyst::Plugin::Session::State::Cookie>, URI State 不太安全
+
+=item * Store
+
+Store 有很多种，你可以存到 DBI (DBIC) 里也可以存到 Memcached 或 FastMmap
+
+=back
+
+永久登录可以参阅 L<Catalyst::Plugin::Session::DynamicExpiry>, 该模块通过每次都更改 cookie 的 Expire 日期来获得长时间的储存。
+
+坦白说，该 Session 模块并不是很好。因为统一的 API 接口缺陷，你不能通过一个 user_id 来删除该用户的 session 数据。Session 模块的过期数据清理也需要自己做。
+
+但是整体来说，还是做到了应该需要做到的。
+
+最后，我们以 L<Catalyst::Plugin::Session::State::Cookie> + L<Catalyst::Plugin::Session::Store::DBIC> 为例，讲述一点内部知识。
+
+=over 4
+
+=item * sessionid
+
+第一步，我们将在用户调用 $c->session 或 $c->sessionid 或其他的时候，通过 C<get_session_id> 来获得 sessionid
+
+在 State::Cookie 里，get_session_id 仅仅是查询 $c->request->cookies->{$cookie_name};
+
+=item * session
+
+在得到 sessionid 之后，我们将在用户调用 $c->session 或 ->flash 的时候，通过 C<get_session_data> 来获得 session 的数据。同时，我们通过 L<Object::Signature> 来得到 session 数据的一个当前 signature
+
+get_session_data 函数在 L<Catalyst::Plugin::Session::Store::Delegate>, 它将通过 C<session_store_delegate_key_to_accessor> 来调用得到 session("session:$sid"), expires("expires:$sid")
+
+=item * request
+
+上述流程当在调用 $c->session 时发生，如果不调用就不会通过 Store 得到 session 数据。
+
+request 里你可以只读的调用 $c->session->{key} 或者可写 delete $c->session->{far} 或 $c->session->{bar} = 1;
+
+=item * finalize_headers
+
+finalize_headers 主要用于更改 cookie 的 Expire 时间。
+
+个人认为这不是很好，因为每次 request 都需要更改 cookie 的 Expire 时间，这很浪费。一般来说，要么 cookie 为浏览器进程 cookie, 要么就保存的久一点，不用每次 request 都更新 cookie 的 Expire
+
+=item * finalize_session
+
+该过程在 finalize_body 之前调用。
+
+首先我们将使用 L<Object::Signature> 来得到当前 session 数据 ($c->_session) 的 signature 值。然后跟上面 get_session_data 之后的值比较。
+
+如果在 request 中只是只读的调用 $c->session 的话，那这两个值应当是一样的。
+
+如果进行了新增更改或删除的话，那这两个值就不一样了。这时候我们就会调用 Store 里的 C<store_session_data> 来更新数据。
+
+这里还有个更新 session 的 expires 时间。这个跟上面的更新 cookie Expire 时间一样，每次 request 都会调用。有点浪费。
+
+=back
+
+=head3 Authentication
+
+Authentication 指的是 L<Catalyst::Plugin::Authentication>
+
+=over 4
+
+Authentication 分为两个部分
+
+=item * Credential
+
+Credential 是指通过什么方式来验证这个 user 提供的登录信息是否正确。最常用的是 L<Catalyst::Authentication::Credential::Password>, 通过 password 来验证。
+
+其他的还有 OpenID, OAuth, Authen::Simple, HTTP, 甚至 Flickr, FBConnect等
+
+所有的 Credential 模块都拥有 sub authenticate
+
+=item * Store
+
+Store 是指去哪里找到这个 user, 最常用的是 L<Catalyst::Authentication::Store::DBIx::Class>
+
+其他的还有 LDAP, RDBO, KiokuDB, Jifty::DBI, Htpasswd 等
+
+Store 一般分为 2 个模块，一个是主模块用于如何查找 user （通过 sub find_user），另一个是 User 模块，该模块定义了 from_session, for_session, get_object, AUTOLOAD 等。
+
+=back
+
+我们将以 L<Catalyst::Authentication::Credential::Password> + L<Catalyst::Authentication::Store::DBIx::Class> 为例，讲述一点内部知识。
+
+=over 4
+
+=item * 流程
+
+在 $c->authenticate 验证通过后，将通过 for_session 来 insert 些数据到 $c->session 里。
+
+在以后的 request 里，通过 from_session 可以得到 $c->user
+
+=item * $c->user
+
+用 L<Catalyst::Authentication::Store::DBIx::Class> 的话，$c->user 就是 Catalyst::Authentication::Store::DBIx::Class::User
+
+用 L<Catalyst::Authentication::Store::Jifty::DBI> 的话，$c->user 就是 Catalyst::Authentication::Store::Jifty::DBI::User
+
+所有的这些 Catalyst::Authentication::Store::*::User 都定义了 get_object, $c->user->get_object 才返回真正的 user 数据。
+
+而当你调用 $c->user->xxxx 的时候，一般是调用了 Catalyst::Authentication::Store::*::User 的 C<AUTOLOAD>
+
+=back
+
 =head2 FAQ
 
 =over 4
