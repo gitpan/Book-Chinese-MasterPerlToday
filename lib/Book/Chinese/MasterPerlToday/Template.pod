@@ -6,6 +6,98 @@ Book::Chinese::MasterPerlToday::Template - Template::Toolkit
 
 =head1 DESCRIPTION
 
+=head2 概念
+
+=over 4
+
+=item * Directives 指令类
+
+指令类的语法一般都是大写的。L<Template::Manual::Directives>
+
+最常用的指令有 PROCESS, INCLUDE, IF, ELSE, END, FOREACH, USE, NEXT, LAST 等
+
+=item * Variables 变量
+
+变量一般通过 stash 设置。L<Template::Manual::Variables>
+
+TT 里有几个内置变量需要注意。如 [% template; component; loop; error; content; %]
+
+=item * VMethods 虚拟方法
+
+虚拟方法大部分由 Perl 内在函数转化而已。L<Template::Manual::VMethods>
+
+比如正则替换，排序，删除或切分等。虚拟方法与变量的类型密切相关。
+
+=item * Filters 过滤器
+
+L<Template::Manual::Filters>
+
+过滤器从内在来说与虚拟方法并无很大区分。所有的虚拟方法都可以转为过滤器，反之亦然。
+
+只不过太多的虚拟方法可能会与 HASH/Object 的 key/method 造成键冲突，所以一般（并不绝对）内置函数成虚拟方法而外部模块的方法转成过滤器。
+
+=item * Plugins 插件
+
+插件一般提供实例和基于实例的多种方法。L<Template::Manual::Plugins>
+
+插件一般是 Template 与其他模块的胶水。也可以通过插件来编写过滤器或虚拟方法。
+
+=back
+
+=head2 细节语法
+
+=over 4
+
+=item * 注释
+
+    [%# a = 77
+       b = 88
+    %]
+    [% # a = 77
+       b = 88
+    %]
+
+在 [% 后紧跟注释符号代表注释整个 [% %], 而之间有空格意味着只注释该行。
+
+=item * 合并多行代码
+
+    [% IF cond;
+        a = a + 1;
+       ELSE;
+        b = b + 2;
+        c = c + 2;
+       END; %]
+
+多行代码用 ';' 分开。
+
+=item * FOREACH 的 loop 变量
+
+    [% FOREACH item IN items;
+        IF loop.first; # 第一个
+            '<b>' _ item _ '</b>';
+            NEXT; # 下一个
+        END;
+        IF loop.even; '<br />'; END; # 双数的时候，等同于 loop.count MOD 2 == 0
+        IF loop.count == 5; # 第五个
+            item _ ' More... ';
+            LAST; # 退出循环
+        END;
+       END; %]
+
+注意 loop.next 是得到下一个元素，而 NEXT 是下一个循环；loop.last 是判断是否是最后一个元素，而 LAST 是退出循环。（可以理解成：指令 NEXT, LAST 并没有任何返回值，而变量 loop.next|last 都有返回值。）
+
+更多更详尽的参考 L<Template::Iterator>
+
+=item * CALL
+
+    [% CALL inc_page_counter(page_count) %]
+
+CALL 与 GET 相似但不输出任何东西（忽略返回结果）。
+
+=back
+
+更多的请参考 L<Template::Manual::Syntax>
+
 =head2 INSERT INCLUDE PROCESS
 
 为了更好的组织和复用代码，我们会经常将一个网页所调用的 tt 模板分为好几个。
@@ -246,7 +338,7 @@ L<Template::Plugin::Filter>
 
 =head3 tpage
 
-L<http://search.cpan.org/perldoc?Template::Tools::tpage>
+L<Template::Tools::tpage>
 
 C<tpage> 用来测试一些简单的 tt2 语法还是比较轻快的。
 

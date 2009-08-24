@@ -50,3 +50,5 @@ lib/Book/Chinese/MasterPerlToday/Moose.pod
 lib/Book/Chinese/MasterPerlToday/Preface.pod
 lib/Book/Chinese/MasterPerlToday/Template.pod
 t/load.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t
