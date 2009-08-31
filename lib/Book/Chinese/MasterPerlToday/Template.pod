@@ -24,7 +24,7 @@ TT 里有几个内置变量需要注意。如 [% template; component; loop; erro
 
 =item * VMethods 虚拟方法
 
-虚拟方法大部分由 Perl 内在函数转化而已。L<Template::Manual::VMethods>
+虚拟方法大部分由 Perl 内在函数转化而成。L<Template::Manual::VMethods>
 
 比如正则替换，排序，删除或切分等。虚拟方法与变量的类型密切相关。
 
@@ -240,7 +240,7 @@ Template 定义了一些常用的过滤器，我们将通过语法介绍来认�
 
 这两种不同的过滤器有两种不同的写法。
 
-=head3 FILTERS
+=head4 FILTERS
 
     my $tt = Template->new({
         FILTERS => {
@@ -285,7 +285,7 @@ Template 定义了一些常用的过滤器，我们将通过语法介绍来认�
     tEMPLATE IS GREAT
     templa
 
-=head3 PLUGINS
+=head4 PLUGINS
 
 L<Template::Plugin::Filter>
 
